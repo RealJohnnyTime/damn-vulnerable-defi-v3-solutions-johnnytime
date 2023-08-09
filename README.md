@@ -48,7 +48,8 @@ Unlike DVD V2, which only used [OpenZeppelin Contracts](https://www.openzeppelin
 All existing challenges in DVD V3 have been improved, with updates to both Solidity and JavaScript code. This might affect previous solutions, as things like interfaces and complexities have changed. The new version also includes ERC implementations, gas optimizations, and assembly, reflecting real DeFi contract evolution.
 
 [Checkout The Full Article](https://medium.com/@JohnnyTime/damn-vulnerable-defi-version-3-whats-new-87d7e7eaf0f1)
-[!Damn Vulnerable DeFi V3 - What's New](https://www.youtube.com/watch?v=CfR1CcO8lEI)
+
+[![Watch The Full Video](https://i.imgur.com/MmnxrGB.jpg)](https://www.youtube.com/watch?v=CfR1CcO8lEI)
 
 ## 0.2 - Tips to Get Started
 DVD V3 introduces 15 exercises, each representing a unique vulnerable smart contract. These exercises span various attack vectors, including flash loans, governance attacks, NFTs, DEXs, and lending protocols.
@@ -80,6 +81,9 @@ Succeeding in DVD V3 2023 requires strategic thinking and keen observation. Here
 In case you feel like you lack some fundamentals in smart contract hacking, it's highly recommended to take a comprehensive and structured approach that will help you in your auditing career.
 You can enroll in [The Smart Contract Hacking Course](https://smartcontractshacking.com/) - which includes over 30 videos and 40+ exercises, including walkthroughs. The course offers community interaction and an official Smart Contract Hacker Certificate upon completion.
 
+[Checkout The Full Article](https://medium.com/@JohnnyTime/getting-started-with-damn-vulnerable-defi-v3-2023-a-comprehensive-guide-34599983ee1b)
+
+[![Watch The Full Video](https://i.imgur.com/3knz9eX.jpg)](https://www.youtube.com/watch?v=ssqjWX96Smc)
 
 ## 1 - Unstoppable
 
@@ -110,7 +114,7 @@ The attack involves introducing a conflict between the two accounting systems th
 
 [Full Article](https://medium.com/@JohnnyTime)
 
-[![Watch the video](https://i.imgur.com/eNUlEnF.jpg)](https://www.youtube.com/@JohnnyTime)
+[![Watch The Walkthrough Video](https://i.imgur.com/kpgRtUq.jpg)](https://www.youtube.com/@JohnnyTime)
 
 ## 2 - Naive receiver
 
