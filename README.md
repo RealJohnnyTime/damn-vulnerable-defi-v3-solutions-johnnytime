@@ -110,7 +110,7 @@ The attack involves introducing a conflict between the two accounting systems th
 
 [Full Article](https://medium.com/@JohnnyTime)
 
-[![Watch the video](https://img.youtube.com/vi/SssTj52WYNM/maxresdefault.jpg)](https://www.youtube.com/@JohnnyTime)
+[![Watch the video](https://i.imgur.com/eNUlEnF.jpg)](https://www.youtube.com/@JohnnyTime)
 
 ## 2 - Naive receiver
 
