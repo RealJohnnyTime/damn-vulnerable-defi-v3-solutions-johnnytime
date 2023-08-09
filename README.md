@@ -107,8 +107,10 @@ The attack involves introducing a conflict between the two accounting systems th
 
 
 [Solution Test File](./test/unstoppable/unstoppable.challenge.ts)
+
 [Full Article](https://medium.com/@JohnnyTime)
-[![Damn Vulnerable DeFi V3 Challenge 1 Unstoppable Walkthrough Solution]](https://www.youtube.com/@JohnnyTime)
+
+[![Watch the video](https://img.youtube.com/vi/SssTj52WYNM/maxresdefault.jpg)](https://www.youtube.com/@JohnnyTime)
 
 ## 2 - Naive receiver
 
