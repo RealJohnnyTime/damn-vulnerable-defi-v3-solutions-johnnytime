@@ -112,7 +112,7 @@ Under the ERC4626 guidelines, the `convertToShares()` function transforms an ass
 The attack involves introducing a conflict between the two accounting systems through a manual transfer of `DVT` tokens to the vault.
 
 
-[Solution Test File](./test/unstoppable/unstoppable.challenge.ts)
+[Solution Test File](./test/unstoppable/unstoppable.challenge.js)
 
 [Full Article](https://medium.com/p/1fe4364165cd)
 
