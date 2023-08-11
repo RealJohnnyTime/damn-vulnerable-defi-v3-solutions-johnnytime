@@ -179,7 +179,7 @@ await AttackerContractFactory.deploy(pool.address, receiver.address);
 
 [Solution - AttackNaiveReceiver.sol Contract](./contracts/player-contracts/AttackNaiveReceiver.sol)
 
-[Solution - Test File](./test/naive-receiver/naive-receiver.challenge.ts)
+[Solution - Test File](./test/naive-receiver/naive-receiver.challenge.js)
 
 [Full Article](https://medium.com/p/73a06de164ef)
 
@@ -212,7 +212,7 @@ The provided code prepares information for the "approve" function call. It inclu
 
 The challenge is completed and the tokens are acquired! :)
 
-[Solution - Test File](./test/truster/truster.challenge.ts)
+[Solution - Test File](./test/truster/truster.challenge.js)
 
 [Full Article](https://medium.com/p/cac8adf55233)
 
