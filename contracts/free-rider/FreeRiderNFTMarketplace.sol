@@ -90,6 +90,8 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
         if (priceToPay == 0)
             revert TokenNotOffered(tokenId);
 
+        // @audit-issue I can purchase 6 NFTs while paying only for one
+        // @audit-info msg.value doesn't change even if we sent the ETH out
         if (msg.value < priceToPay)
             revert InsufficientPayment();
 
@@ -97,8 +99,11 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
 
         // transfer from seller to buyer
         DamnValuableNFT _token = token; // cache for gas savings
+        // @audit-issue Medium / High seller can revoke the token spending approval
         _token.safeTransferFrom(_token.ownerOf(tokenId), msg.sender, tokenId);
 
+        // @audit-issue Eth is being send to the buyer instead of the seller
+        // @audit-info This happens because we transfered the token before sending the ETH and changed it's ownership
         // pay seller using cached token
         payable(_token.ownerOf(tokenId)).sendValue(priceToPay);
 

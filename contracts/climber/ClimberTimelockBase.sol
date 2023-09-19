@@ -36,6 +36,7 @@ abstract contract ClimberTimelockBase is AccessControl {
                 state = OperationState.Executed;
             } else if (block.timestamp < op.readyAtTimestamp) {
                 state = OperationState.Scheduled;
+            // @audit-info block.timestamp >= op.readyAtTimestamp
             } else {
                 state = OperationState.ReadyForExecution;
             }
