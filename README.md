@@ -230,7 +230,7 @@ We will exploit the 3 functions `flashLoan`, `deposit` and `withdraw`
 2. During the flashloan we deposit the borrowed assets back to the pool. The flashLoan will succeed since the balance of the pool didn't change, but the contract will credit our mapping balance.
 3. After the `flashLoan` is completed and the contract credited us, we call the withdraw function to drain all the ETH that we "deposited" earlier (even though it wasn't our ETH but we borrowed ETH)
 
-The challenge is completed and we were able to drain all the ETH from the pool! :)
+The challenge is completed and we were able to drain all the ETH from the pool!! :)
 
 [Solution - AttackSideEntrance.sol Contract](./contracts/player-contracts/AttackSideEntrance.sol)
 
