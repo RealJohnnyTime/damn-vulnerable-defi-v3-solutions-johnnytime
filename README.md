@@ -381,7 +381,7 @@ The attack contract will:
 
 [Puppet Solution Tutorial (Full Article)](https://medium.com/p/49472219b0c8)
 
-[![Puppet  Solution - Walkthrough Video](https://i.imgur.com/rq3IPaM.jpg)](https://www.youtube.com/watch?v=7pf3COTx708&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
+[![Puppet Solution - Walkthrough Video](https://i.imgur.com/rq3IPaM.jpg)](https://www.youtube.com/watch?v=7pf3COTx708&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
 
 ## 9 - Puppet V2
 
@@ -408,7 +408,7 @@ In order to exploit the Puppet V2 pool we will create an attack contract that wi
 
 [Puppet V2 Solution Tutorial (Full Article)](https://medium.com/p/48cd878f275e)
 
-[![Puppet V2 Solution - Walkthrough Video](https://i.imgur.com/5EjZAzL.jpg)](https://www.youtube.com/watch?v=F4kqItXHDb0&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00
+[![Puppet V2 Solution - Walkthrough Video](https://i.imgur.com/5EjZAzL.jpg)](https://www.youtube.com/watch?v=F4kqItXHDb0&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
 
 ## 10 - Free rider
 
