@@ -22,10 +22,13 @@ Original repository (without solutions): [Damn Vulnerable DeFi V3 Github](https:
     - [Option 1: Solve with 10 Transactions](#option-1-solve-with-10-transactions)
     - [Option 2: Solve with Only 1 Transaction](#option-2-solve-with-only-1-transaction)
   - [3 - Truster](#3---truster)
-  - [4 - Side entrance](#4---side-entrance)
-  - [5 - The rewarder](#5---the-rewarder)
+  - [4 - Side Entrance](#4---side-entrance)
+  - [5 - The Rewarder](#5---the-rewarder)
   - [6 - Selfie](#6---selfie)
   - [7 - Compromised](#7---compromised)
+    - [Smart Contracts](#smart-contracts)
+    - [The Vulnerability](#the-vulnerability)
+    - [The Exploit](#the-exploit)
   - [8 - Puppet](#8---puppet)
   - [9 - Puppet V2](#9---puppet-v2)
   - [10 - Free rider](#10---free-rider)
@@ -114,7 +117,7 @@ The attack involves introducing a conflict between the two accounting systems th
 
 [Solution Test File](./test/unstoppable/unstoppable.challenge.js)
 
-[Full Article](https://medium.com/p/1fe4364165cd)
+[Unstoppable Solution Tutorial (Full Article)](https://medium.com/p/1fe4364165cd)
 
 [![Unstoppable Solution - Walkthrough Video](https://i.imgur.com/kpgRtUq.jpg)](https://www.youtube.com/watch?v=SssTj52WYNM&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
@@ -181,7 +184,7 @@ await AttackerContractFactory.deploy(pool.address, receiver.address);
 
 [Solution - Test File](./test/naive-receiver/naive-receiver.challenge.js)
 
-[Full Article](https://medium.com/p/73a06de164ef)
+[Naive Receiver Solution Tutorial (Full Article)](https://medium.com/p/73a06de164ef)
 
 [![Naive Receiver Solution - Walkthrough Video](https://i.imgur.com/FhJsAVK.jpg)](https://www.youtube.com/watch?v=2tFlcH5k-jk&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
@@ -214,11 +217,11 @@ The challenge is completed and the tokens are acquired! :)
 
 [Solution - Test File](./test/truster/truster.challenge.js)
 
-[Full Article](https://medium.com/p/cac8adf55233)
+[Truster Solution Tutorial (Full Article)](https://medium.com/p/cac8adf55233)
 
 [![Truster Solution - Walkthrough Video](https://i.imgur.com/afEnVwL.jpg)](https://www.youtube.com/watch?v=CMRaTqjLUfc&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
-## 4 - Side entrance
+## 4 - Side Entrance
 - The challenge starts with a flash loan pool that has 1000 ETH in balance.
 - It allows users to deposit and withdraw ETH
 - We need to drain the pool
@@ -236,12 +239,12 @@ The challenge is completed and we were able to drain all the ETH from the pool!!
 
 [Solution - Test File](./test/side-entrance/side-entrance.challenge.js)
 
-[Full Article](https://medium.com/p/b5ccbd64e1e7)
+[Side Entrance Solution Tutorial (Full Article)](https://medium.com/p/b5ccbd64e1e7)
 
 [![Side Entrance Solution - Walkthrough Video](https://i.imgur.com/OwtLxeN.jpg)](https://youtu.be/upUsq4eJ2-E&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
 
-## 5 - The rewarder
+## 5 - The Rewarder
 In this challenge, there's a pool that offers rewards in tokens every 5 days for depositing DVT tokens. We don't have any DVT tokens 😭 We've heard rumors about flash loans in DVT tokens, hinting that we can use them to claim rewards.
 
 To tackle this challenge, we need to understand four main contracts:
@@ -259,12 +262,11 @@ Our malicious contract will:
 
 Let's put it to the test! We'll fast-forward time, deploy our malicious contract, and initiate the attack. 
 
-
 [Solution - AttackTheRewarder.sol Contract](./contracts/player-contracts/AttackTheRewarder.sol)
 
 [Solution - Test File](./test/the-rewarder/the-rewarder.challenge.js)
 
-[Full Article](https://medium.com/p/d3bac0f4ca2f)
+[The Rewarder Solution Tutorial (Full Article)](https://medium.com/p/d3bac0f4ca2f)
 
 [![The Rewarder Solution - Walkthrough Video](https://i.imgur.com/03xVDLE.jpg)](https://www.youtube.com/watch?v=zT5uNbGPaJ4&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00=)
 
@@ -303,15 +305,110 @@ Then we will run `yarn selfie` to test our exploit... and... It worked!
 
 [Solution - Test File](./test/selfie/selfie.challenge.js)
 
-[Full Article](https://medium.com/p/2dd62fe89dd7)
+[Selfie Solution Tutorial (Full Article)](https://medium.com/p/2dd62fe89dd7)
 
 [![Selfie Solution - Walkthrough Video](https://i.imgur.com/tX966kb.jpg)](https://www.youtube.com/watch?v=_2RHyMMLR9A&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
 
 ## 7 - Compromised
+The 7th Challenge, "Compromised," involves an NFT exchange with high-priced NFTs sourced from an external Oracle Service.
+The goal is to manipulate the exchange's prices to buy low and sell high, draining the exchange's ETH.
+
+### Smart Contracts
+- `Exchange.sol`: Represents the NFT exchange, allows buying and selling of `DVNF` tokens.
+- `TrustfulOracle.sol`: A decentralized price oracle with trusted sources for calculating median prices.
+- `TrustfulOracleInitializer.sol`: A utility contract to deploy and initialize a new instance of the TrustfulOracle contract.
+
+### The Vulnerability
+- Private keys associated with trusted oracle accounts are leaked.
+- These keys can be used to manipulate prices within the oracle, enabling profitable transactions.
+
+Leaked message from the web service:
+`4d 48 68 6a 4e 6a 63 34 5a 57 59 78 59 57 45 30 4e 54 5a 6b 59 54 59 31 59 7a 5a 6d 59 7a 55 34 4e 6a 46 6b 4e 44 51 34 4f 54 4a 6a 5a 47 5a 68 59 7a 42 6a 4e 6d 4d 34 59 7a 49 31 4e 6a 42 69 5a 6a 42 6a 4f 57 5a 69 59 32 52 68 5a 54 4a 6d 4e 44 63 7a 4e 57 45 35
+
+4d 48 67 79 4d 44 67 79 4e 44 4a 6a 4e 44 42 68 59 32 52 6d 59 54 6c 6c 5a 44 67 34 4f 57 55 32 4f 44 56 6a 4d 6a 4d 31 4e 44 64 68 59 32 4a 6c 5a 44 6c 69 5a 57 5a 6a 4e 6a 41 7a 4e 7a 46 6c 4f 54 67 33 4e 57 5a 69 59 32 51 33 4d 7a 59 7a 4e 44 42 69 59 6a 51 34`
+
+Let's convert the hex into utf-8 text, we get these:
+`MHhjNjc4ZWYxYWE0NTZkYTY1YzZmYzU4NjFkNDQ4OTJjZGZhYzBjNmM4YzI1NjBiZjBjOWZiY2RhZTJmNDczNWE5
+MHgyMDgyNDJjNDBhY2RmYTllZDg4OWU2ODVjMjM1NDdhY2JlZDliZWZjNjAzNzFlOTg3NWZiY2Q3MzYzNDBiYjQ4`
+
+This looks like a base64 encoding. If we decode it from base64 into utf-8 text, we get these:
+`0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9
+0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48`
+
+These looks like 2 private keys! :)
+
+### The Exploit
+- Convert leaked private keys from HEX to ASCII to Base64.
+- Create wallet objects with these private keys.
+- Set a low price for NFTs and buy them at a low price.
+- Set a high price for NFTs and sell them back to the exchange, draining its ETH.
+- Restore the original price.
+- By following these steps, you can successfully complete the Compromised Challenge and drain the exchange of its ETH.
+
+
+[Solution - Test File](./test/compromised/compromised.challenge.js)
+
+[Compromised Solution Tutorial (Full Article)](https://medium.com/p/ea9b42c23068)
+
+[![Compromised Solution - Walkthrough Video](https://i.imgur.com/BrPxE9e.jpg)](https://www.youtube.com/watch?v=ecYTmC6tUXI&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
 
 ## 8 - Puppet
 
+The challenge involves manipulating the price Oracle of a lending pool by exploiting a vulnerability in the calculation of the Oracle price. It focuses on the use of a Uniswap V1 exchange as the price Oracle, which has low liquidity.
+
+The primary contract is `PuppetPool.sol`, a lending pool where users can borrow tokens by providing collateral in ETH.
+The constructor takes addresses for the DVT token and a Uniswap pair of DVT tokens with ETH.
+It calculates required collateral based on the current Oracle price and ensures users provide sufficient collateral before borrowing tokens.
+
+The vulnerability lies in the contract's over-reliance on Uniswap liquidity to determine token prices.
+We can manipulate the Uniswap liquidity pool to distort the perceived price of the token.
+
+The exploit involves dumping tokens into the pool, altering price perception, depositing minimal ETH collateral, and then borrowing all the DVT tokens.
+
+We will create a `AttackPuppet.sol` contract, which interacts with Uniswap and the `PuppetPool.sol` contract.
+The attack contract will:
+1. **Dump DVT Tokens:** The attacker starts by dumping a significant number of DVT tokens into the Uniswap liquidity pool. This sudden influx of tokens into the pool causes the price of DVT to drop significantly.
+
+2. **Altering Price Perception:** With the DVT price significantly lowered due to the increased token supply in the pool, the PuppetPool contract perceives DVT as nearly worthless.
+
+3. **Minimal Collateral:** The attacker then deposits a relatively small amount of ETH as collateral in the PuppetPool. Since the contract believes DVT is nearly worthless (thanks to the manipulated Uniswap price), it doesn't require a significant ETH deposit.
+
+4. **Borrowing Tokens:** With minimal ETH collateral, the attacker is now in a position to borrow or, in essence, steal all the DVT tokens from the PuppetPool. The contract's flawed price perception allows this to happen.
+
+[Solution - AttackPuppet.sol Contract](./contracts/player-contracts/AttackPuppet.sol)
+
+[Solution - Test File](./test/puppet/puppet.challenge.js)
+
+[Puppet Solution Tutorial (Full Article)](https://medium.com/p/49472219b0c8)
+
+[![Puppet  Solution - Walkthrough Video](https://i.imgur.com/rq3IPaM.jpg)](https://www.youtube.com/watch?v=7pf3COTx708&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
+
 ## 9 - Puppet V2
+
+In this challenge we start with 20 ETH and 10,000 DVD tokens while the `PuppetV2Pool.sol` smart contract holds a million DVD tokens. Our goal is to steal all the DVT tokens from the smart contract.
+
+The main contract is `PuppetV2Pool.sol`, which allows borrowing tokens against WETH collateral using Uniswap V2 Pair for price information. It maintains a "deposits" mapping to track user deposits. Users can borrow DVT tokens by depositing three times the value in WETH.
+
+The `calculateDepositOfWETHRequired()` calculates the required WETH collateral in order to borrow a specific amount of DVT tokens.
+It uses Uniswap V2 library to get price quotes based on the pair reservers (liquidity).
+
+The vulnerability lies in how the contract fetches DVT token prices from Uniswap V2.
+The price calculation is based on the current liquidity of the pair contract, making it susceptible to manipulation through external capital or flash loans, we can't use flashSwap since it uses the reserves state variables and not simply the pair contract token's balance.
+
+In order to exploit the Puppet V2 pool we will create an attack contract that will:
+1. Dump 10,000 DVT tokens into the liquidity pool, receiving around 9 ETH.
+2. This reduces the DVT price in the pool.
+3. Deposit ETH as collateral since DVT price is low.
+4. Borrow all 100,000 DVT tokens from the pool.
+
+
+[Solution - AttackPuppetV2.sol Contract](./contracts/player-contracts/AttackPuppetV2.sol)
+
+[Solution - Test File](./test/puppet-v2/puppet-v2.challenge.js)
+
+[Puppet V2 Solution Tutorial (Full Article)](https://medium.com/p/48cd878f275e)
+
+[![Puppet V2 Solution - Walkthrough Video](https://i.imgur.com/5EjZAzL.jpg)](https://www.youtube.com/watch?v=F4kqItXHDb0&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00
 
 ## 10 - Free rider
 
