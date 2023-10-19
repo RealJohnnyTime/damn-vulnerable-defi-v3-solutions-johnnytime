@@ -33,6 +33,9 @@ Original repository (without solutions): [Damn Vulnerable DeFi V3 Github](https:
   - [9 - Puppet V2](#9---puppet-v2)
   - [10 - Free rider](#10---free-rider)
   - [11 - Backdoor](#11---backdoor)
+    - [`WalletRegistery.sol` Breakdown](#walletregisterysol-breakdown)
+    - [Attack Plan](#attack-plan)
+    - [Executing the Attack](#executing-the-attack)
   - [12 - Climber](#12---climber)
   - [13 - Wallet Mining](#13---wallet-mining)
   - [14 - Puppet V3](#14---puppet-v3)
@@ -412,7 +415,80 @@ In order to exploit the Puppet V2 pool we will create an attack contract that wi
 
 ## 10 - Free rider
 
+In this challenge we need to hack an NFT Marketplace and steal the 6 NFTs that are listed on it.
+Once we successfully steal them we should send them to the DEV team to receive a bounty of 45 ETH.
+
+Every NFT is listed for 15 ETH, and we have only 0.1 so we need to find some vulnerabilities in the marketplace in order to get the NFTs "for free".
+
+The marketplace contract which holds the NFTs is `FreeRiderNFTMarketplace.sol`, and the Contract for the recovery of the NFTs and receiving the bounties (that the DEVs setup) is `FreeRiderRecovery.sol`.
+
+There are some vulnerabilities with the marketplace which we can exploit:
+
+1. There is a problem with the `msg.value` validation in the contract. The _buyOne function checks if the user paid enough ETH to purchase the NFT, but there's a logical bug. Buyers can exploit this by using the buyMany function to purchase all NFTs while only paying for one, as `msg.value` remains constant.
+   
+2. The second issue is that ETH is sent to the NFT buyer instead of the seller. This happens because the NFT is transferred before sending the ETH, resulting in a refund to the buyer. 
+   
+These 2 vulnerabilities combines allows an attacker to purchase all NFTs for just 15 ETH and receive their ETH back. 
+
+The challenge here is that we initially have only 0.1 ETH, which is far from the required 15 ETH. So, how can we manage to temporarily obtain 15 ETH, even if it's just for a moment?
+FlashSwap is the Answer!
+
+- The test file shows the deployment of a Uniswap Pair with 9000 ETH, which is essential for our attack plan!
+- The plan involves using this liquidity pool to "borrow" ETH via a FlashSwap, which will be used to acquire NFTs.
+- We can repay the borrowed ETH due to a previously identified bug, that the buyer is the one who receives the ETH.
+
+The attack plan consists of several steps:
+1. Deploy a malicious contract and allocate ETH to cover Uniswap Pool fees.
+2. Borrow 15 ETH from the Uniswap liquidity pool using Uniswap V2 FlashSwaps.
+3. Convert the received WETH to usable ETH for NFT purchase.
+4. Exploit the first bug in `_buyOne` to buy all NFTs with only 15 ETH.
+5. Take advantage of the second bug to obtain both the ETH and NFTs.
+6. Repay the borrowed ETH, including a 0.3% fee, to the Uniswap V2 Pool.
+7. Send tokens to the "Recovery" contract to claim the bounty.
+
+
+[Solution - AttackFreeRider.sol Contract](./contracts/player-contracts/AttackFreeRider.sol)
+
+[Solution - Test File](./test/free-rider/free-rider.challenge.js)
+
+[Free Rider Solution Tutorial (Full Article)](https://medium.com/p/7da8122691b3)
+
+[![Free Rider Solution - Walkthrough Video](https://i.imgur.com/Y2hPOwU.jpg)](https://youtu.be/TgtRCjFACDk&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
+
 ## 11 - Backdoor
+In this challenge there is a company that incentivises MultiSig Wallet creation, and offers 10DVT tokens as bounty for every employee that will create a Safe. Our goal is to steal those 40 DVT tokens (10 DVT * 2 beneficiaries), even though we're not in the beneficiaries list.
+
+### `WalletRegistery.sol` Breakdown
+- The `WalletRegistry` contract features a callback function called `proxyCreated`.
+- This function is triggered when a new wallet is created through the Gnosis wallet factory using `createProxyWithCallback`.
+- Multiple checks are in place within the `proxyCreated` function to ensure safe initialization of new wallets.
+- If these checks pass, the `WalletRegistry` sends token rewards to the newly deployed safe.
+
+Upon examining the initialization data provided during wallet creation, used to initialize the wallet by invoking the `setup` function in `GnosisSafe.sol`, among all the arguments passed to `setup`, only the following can be customized while still satisfying the registry's validation checks: `address to`, `bytes calldata data`, `paymentToken`, `payment`, and `paymentReceiver`.
+
+### Attack Plan
+- During the setup procedure, it's possible to execute code on behalf of the Gnosis Safe itself.
+- This opens an opportunity to utilize the "Modules" feature, allowing for the creation of a malicious contract and executing code on behalf of the newly created safe.
+- The plan is to create a sneaky backdoor within the safe, which will grant a malicious smart contract permission to spend DVT tokens on behalf of the safe.
+- After the safe is deployed and configured, these approval rights will enable the theft of the 10 DVT tokens initially transferred to the safe by the WalletRegistry.
+
+### Executing the Attack
+Our attack strategy has six steps:
+1. **Deploy Malicious Contract:** Initially, we create a new malicious contract. Subsequently, we trigger the Gnosis Safe Factory contract, executing the `createProxyWithCallback` function.
+2. **Create Gnosis Safe Proxy:** The factory, in response, deploys a fresh Gnosis Safe proxy, pointing to the masterCopy implementation.
+3. **Execute Malicious Module:** The setup function is automatically executed within the new proxy, allowing our malicious module within the `MaliciousApprove` contract to grant approval for our attacker contract to manage DVT tokens on behalf of the new Safe Proxy.
+4. **Callback Execution:** The callback function is activated, calling the `WalletRegistry`, which performs a series validations and checks.
+5. **DVT Token Transfer:** Since all the checks passed, the `WalletRegistry` facilitates the transfer of DVT tokens to the Safe Proxy.
+6. **Token Theft:** Leveraging the previously obtained allowance, we execute the transferFrom function to steal the DVT tokens from the Safe.
+
+[Solution - AttackBackdoor.sol Contract](./contracts/player-contracts/AttackBackdoor.sol)
+
+[Solution - Test File](./test/backdoor/backdoor.challenge.js)
+
+[Backdoor Solution Tutorial (Full Article)](https://medium.com/p/7da8122691b3)
+
+[![Backdoor Solution - Walkthrough Video](https://i.imgur.com/vzPVGB1.jpg)](https://youtu.be/iZAPQUF1s4M&list=PLKXasCp8iWpiKdsSR18XdAyDeYlYzMG00)
+
 
 ## 12 - Climber
 
